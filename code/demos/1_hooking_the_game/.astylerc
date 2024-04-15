@@ -1,0 +1,51 @@
+### Brace Style Options
+style=horstmann
+
+### Tab Options
+indent=force-tab
+
+### Brace Modify Options
+attach-closing-while
+
+### Indentation Options
+indent-classes
+indent-switches
+indent-namespaces
+indent-continuation=1
+indent-labels
+indent-preproc-block
+indent-preproc-define
+indent-preproc-cond
+indent-col1-comments
+min-conditional-indent=0
+max-continuation-indent=120
+# in case I ever need to use this shit fucking language
+# ps : not recognized by astyle fsr
+# lambda-indent
+pad-oper
+pad-comma
+unpad-paren
+unpad-brackets
+squeeze-lines=1
+squeeze-ws
+align-pointer=middle
+
+### Formatting Options
+break-one-line-headers
+remove-braces
+attach-return-type
+attach-return-type-decl
+# for switch case breaks
+keep-one-line-statements
+# for inline functions
+keep-one-line-blocks
+# for xmacros (.def) formatting
+mode=c
+
+# Other Options
+suffix=none
+
+#dry-run
+preserve-date
+verbose
+lineend=windows

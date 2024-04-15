@@ -1,0 +1,1 @@
+I work with c++, cmake, and mingw-w64. Any version should do.

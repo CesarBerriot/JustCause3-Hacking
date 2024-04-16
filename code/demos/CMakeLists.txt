@@ -1,3 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
+project(demos)
 
 add_subdirectory(1_hooking_the_game)
+add_subdirectory(2_intercepting_threads)
+add_subdirectory(3_taking_over_the_window)
+add_subdirectory(4_intercepting_win32_messages)

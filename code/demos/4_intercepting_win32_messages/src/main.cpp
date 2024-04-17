@@ -2,11 +2,13 @@
 // Created by César B. on 4/16/2024.
 //
 
-#include <windows.h>
+#include <window_message_registry.hpp>
 #include <shared/utils/utils.hpp>
 #include <shared/fake_xinput_exports/fake_xinput_exports.hpp>
+#include <shared/constants/constants.hpp>
 #include <iostream>
 #include <cassert>
+#include <map>
 
 /// the game's real window procedure function
 WNDPROC game_window_proc = nullptr;
@@ -48,8 +50,94 @@ void on_jc3_tick_callback()
 }
 
 LRESULT game_window_proc_hook(HWND window, UINT message, WPARAM param1, LPARAM param2)
-{	puts("Intercepted a window message.");
-	return game_window_proc(window, message, param1, param2);
+{	/* @note
+	 * ===============================================
+	 * here's what I found about Avalanche Engine's
+	 * use of window messages by experimenting :
+	 * ===============================================
+	 * WM_MOUSEMOVE is used by all UIs to obtain
+	 * the mouse position
+	 * -----------------------------------------------
+	 * after alt-tabbing out of the game window,
+	 * AE will use WM_PAINT as a signal to know when
+	 * to redraw the window.
+	 * ------------------------------
+	 */
+
+	static std::map<int, int> intercepted_messages;
+	static std::map<int, int> redirected_messages;
+	static std::map<int, int> blocked_messages;
+	static std::map<int, int> unknown_messages;
+
+	auto redraw = [](int highlighted_message)
+	{	enum : char { end_line = '\n' };
+
+		auto make_separator = []
+		{	std::stringstream result;
+			for(int i = 0; i < 60; ++i)
+				result << '=';
+			result << end_line;
+			return result.str();
+		};
+
+		auto make_list = [&highlighted_message](auto list, bool are_messages_known)
+		{	std::stringstream result;
+			result << "list size : " << list.size() << end_line;
+			for(auto pair : list)
+			{	if(pair.first == highlighted_message)
+					result << constants::TERMESC_GREEN;
+				result << pair.first;
+				if(are_messages_known)
+					result << ' ' << window_message_registry[pair.first].label;
+				result << " (" << pair.second << ')' << end_line << constants::TERMESC_WHITE;
+			}
+			return result.str();
+		};
+
+		std::stringstream result;
+		result << constants::TERMESC_CLEAR
+			   << make_separator()
+			   << "Demo 4 : Intercepting win32 API window messages" << end_line
+			   << make_separator()
+			   << "intercepted messages :" << end_line
+			   << make_list(intercepted_messages, true)
+			   << make_separator()
+			   << "blocked messages :" << end_line
+			   << make_list(blocked_messages, true)
+			   << make_separator()
+			   << "messages redirected to the win32 API :" << end_line
+			   << make_list(redirected_messages, true)
+			   << make_separator()
+			   << "unknown messages :" << end_line
+			   << make_list(unknown_messages, false)
+			   << make_separator();
+
+		std::cout << constants::TERMESC_WHITE << result.str() << constants::TERMESC_WHITE;
+	};
+
+	if(window_message_registry.count(message))
+		switch(window_message_registry[message].action)
+		{	case hooked_window_message_info::intercept:
+				++intercepted_messages[message];
+				redraw(message);
+				return game_window_proc(window, message, param1, param2);
+			case hooked_window_message_info::redirect_to_win32:
+				++redirected_messages[message];
+				redraw(message);
+				return DefWindowProcA(window, message, param1, param2);
+			case hooked_window_message_info::block:
+				++blocked_messages[message];
+				redraw(message);
+				return 0;
+			default:
+				assert(!"unreacheable code executed");
+				return 0;
+		}
+	else
+	{	++unknown_messages[message];
+		redraw(message);
+		return game_window_proc(window, message, param1, param2);
+	}
 }
 
 void hook_game_window_proc()

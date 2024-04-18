@@ -16,8 +16,8 @@ struct hooked_window_message_info
 #define make_unknown_entry(message_value, action) { message_value, { "UNKNOWN", hooked_window_message_info::action } }
 
 std::map<int, hooked_window_message_info> window_message_registry =
-{	make_entry(WM_NULL, intercept),
-	make_entry(WM_DESTROY, intercept),
+{	make_entry(WM_NULL, block),
+	make_entry(WM_DESTROY, block),
 	make_entry(WM_MOVE, intercept),
 	make_entry(WM_SIZE, intercept),
 	make_entry(WM_ACTIVATE, intercept),
